@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tourism_app/models/tourims_model.dart';
 import 'package:tourism_app/screens/home/tourism_card_widget.dart';
+import 'package:tourism_app/static/navigation_route.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -14,7 +15,14 @@ class HomeScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final tourism = tourismList[index];
 
-          return TourismCard(tourism: tourism);
+          return TourismCard(
+            tourism: tourism,
+            onTap: () => Navigator.pushNamed(
+              context,
+              NavigationRoute.detailRoute.name,
+              arguments: tourism,
+            ),
+          );
         },
       ),
     );
