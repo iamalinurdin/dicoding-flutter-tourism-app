@@ -23,8 +23,15 @@ class DetailScreen extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text(tourism.name, style: TextStyle(fontSize: 18)),
-                        Text(tourism.address, style: TextStyle(fontSize: 12)),
+                        Text(
+                          tourism.name,
+                          style: Theme.of(context).textTheme.headlineLarge,
+                        ),
+                        Text(
+                          tourism.address,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w400),
+                        ),
                       ],
                     ),
                   ),
@@ -34,11 +41,17 @@ class DetailScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.favorite),
                   SizedBox.square(dimension: 4),
-                  Text(tourism.like.toString()),
+                  Text(
+                    tourism.like.toString(),
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ],
               ),
               SizedBox.square(dimension: 16),
-              Text(tourism.description),
+              Text(
+                tourism.description,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ],
           ),
         ),
