@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tourism_app/models/tourims_model.dart';
+import 'package:provider/provider.dart';
+import 'package:tourism_app/providers/detail/bookmark_list_provider.dart';
 import 'package:tourism_app/screens/home/tourism_card_widget.dart';
 import 'package:tourism_app/static/navigation_route.dart';
 
@@ -10,16 +11,30 @@ class BookmarkScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Bookmark List')),
-      body: ListView.builder(
-        itemBuilder: (context, index) => TourismCard(
-          tourism: bookmarkTourismList[index],
-          onTap: () => Navigator.pushNamed(
-            context,
-            NavigationRoute.detailRoute.name,
-            arguments: bookmarkTourismList[index],
-          ),
-        ),
-        itemCount: bookmarkTourismList.length,
+      body: Consumer<BookmarkListProvider>(
+        builder: (context, value, child) {
+          final bookmarks = value.bookmarkList;
+
+          return switch (bookmarks.isNotEmpty) {
+            true => ListView.builder(
+              itemBuilder: (context, index) => TourismCard(
+                tourism: value.bookmarkList[index],
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  NavigationRoute.detailRoute.name,
+                  arguments: value.bookmarkList[index],
+                ),
+              ),
+              itemCount: value.bookmarkList.length,
+            ),
+            _ => const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [Text("No Bookmarked")],
+              ),
+            ),
+          };
+        },
       ),
     );
   }
