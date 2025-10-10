@@ -1,13 +1,31 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tourism_app/models/tourims_model.dart';
+import 'package:tourism_app/data/api/api_service.dart';
+import 'package:tourism_app/data/models/tourims_model.dart';
+import 'package:tourism_app/data/models/tourism_detail_response.dart';
 import 'package:tourism_app/providers/detail/bookmark_icon_provider.dart';
+import 'package:tourism_app/screens/detail/body_of_detail_screen_widget.dart';
 import 'package:tourism_app/screens/detail/bookmark_icon_widget.dart';
 
-class DetailScreen extends StatelessWidget {
-  final Tourism tourism;
+class DetailScreen extends StatefulWidget {
+  final int placeId;
 
-  const DetailScreen({super.key, required this.tourism});
+  const DetailScreen({super.key, required this.placeId});
+
+  @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  final Completer<Tourism> _completerPlace = Completer<Tourism>();
+  late Future<TourismDetailResponse> _futureDetailPlace;
+
+  @override
+  void initState() {
+    _futureDetailPlace = ApiService().getTourismDetail(widget.placeId);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,55 +35,39 @@ class DetailScreen extends StatelessWidget {
         actions: [
           ChangeNotifierProvider(
             create: (context) => BookmarkIconProvider(),
-            child: BookmarkIconWidget(tourism: tourism),
+            child: FutureBuilder(
+              future: _completerPlace.future,
+              builder: (context, snapshot) {
+                return switch (snapshot.connectionState) {
+                  ConnectionState.done => BookmarkIconWidget(
+                    tourism: snapshot.data!,
+                  ),
+                  _ => SizedBox(),
+                };
+              },
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Image.network(tourism.image, fit: BoxFit.cover),
-              SizedBox.square(dimension: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          tourism.name,
-                          style: Theme.of(context).textTheme.headlineLarge,
-                        ),
-                        Text(
-                          tourism.address,
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(fontWeight: FontWeight.w400),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Icon(Icons.favorite),
-                  SizedBox.square(dimension: 4),
-                  Text(
-                    tourism.like.toString(),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-              SizedBox.square(dimension: 16),
-              Text(
-                tourism.description,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-        ),
+      body: FutureBuilder(
+        future: _futureDetailPlace,
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return Center(child: CircularProgressIndicator());
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                return Center(child: Text(snapshot.error.toString()));
+              }
+
+              final place = snapshot.data!.place;
+
+              _completerPlace.complete(place);
+              return BodyOfDetailScreenWidget(place: place);
+            default:
+              return SizedBox();
+          }
+        },
       ),
     );
   }

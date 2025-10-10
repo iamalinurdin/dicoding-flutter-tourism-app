@@ -1,28 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:tourism_app/models/tourims_model.dart';
+import 'package:tourism_app/data/api/api_service.dart';
+import 'package:tourism_app/data/models/tourism_list_response.dart';
 import 'package:tourism_app/screens/home/tourism_card_widget.dart';
 import 'package:tourism_app/static/navigation_route.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<TourismListResponse> _tourismListResponse;
+
+  @override
+  void initState() {
+    _tourismListResponse = ApiService().getTourismList();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Tourism List")),
-      body: ListView.builder(
-        itemCount: tourismList.length,
-        itemBuilder: (context, index) {
-          final tourism = tourismList[index];
+      body: FutureBuilder(
+        future: _tourismListResponse,
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return Center(child: CircularProgressIndicator());
+            case ConnectionState.done:
+              if (snapshot.hasError) {
+                return Center(child: Text(snapshot.error.toString()));
+              }
 
-          return TourismCard(
-            tourism: tourism,
-            onTap: () => Navigator.pushNamed(
-              context,
-              NavigationRoute.detailRoute.name,
-              arguments: tourism,
-            ),
-          );
+              final places = snapshot.data!.places;
+
+              return ListView.builder(
+                itemCount: places.length,
+                itemBuilder: (context, index) {
+                  final place = places[index];
+
+                  return TourismCard(
+                    tourism: place,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      NavigationRoute.detailRoute.name,
+                      arguments: place.id,
+                    ),
+                  );
+                },
+              );
+            default:
+              return SizedBox();
+          }
         },
       ),
     );

@@ -22,7 +22,7 @@ class BookmarkScreen extends StatelessWidget {
                 onTap: () => Navigator.pushNamed(
                   context,
                   NavigationRoute.detailRoute.name,
-                  arguments: value.bookmarkList[index],
+                  arguments: value.bookmarkList[index].id,
                 ),
               ),
               itemCount: value.bookmarkList.length,
